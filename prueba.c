@@ -35,10 +35,10 @@ int main(){
   i=creaHash(FICHERO_DAT,FICHERO_HASH);
   LOG("Generacion fichero HASH done");
   printf("\n\tRegistros desbordados: %d\n",i);
-  if(imprimirFichero == 1){
+  /*if(imprimirFichero == 1){
     printf("\n\nImpresion de fichero Hash:\n");
     leeHash(FICHERO_HASH);
-  }
+  }*/
 
   printf("\n\n************************ BUSQUEDAS DE PRUEBA *************************\n");
   probarBusquedas(FICHERO_HASH);
