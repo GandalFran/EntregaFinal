@@ -13,12 +13,14 @@
 #define TAM_CUBO (sizeof(tipoCubo))
 #define TAM_ALUMNO (sizeof(tipoAlumno))
 
-#define INICIO_DESBORDE (CUBOS*TAM_CUBO)
-#define FIN_DESBORDE ((CUBOS+CUBOSDESBORDE-1)*TAM_CUBO)
-#define DESPLAZA_HASH(elemento) (HASH(elemento)*TAM_CUBO)
+#define DESPLAZA_A_CUBO(numcubo) ( TAM_CUBO * ( numcubo ) )
+#define INICIO_DESBORDE 		 ( DESPLAZA_A_CUBO( CUBOS ) )
+#define FIN_DESBORDE 			 ( DESPLAZA_A_CUBO( CUBOS + CUBOSDESBORDE - 1 ) )
+#define DESPLAZA_HASH(elemento)  ( DESPLAZA_A_CUBO( HASH(elemento) ) )
 
 #define ESTA_DESBORDADO(cubo) (cubo.numRegAsignados > C)
 #define SON_IGUALES(dni1,dni2) (!strcmp(dni1,dni2))
+#define ESTA_VACIA(string) (!strcmp(string,"\0"))
 
 
 tipoAlumno buscarYBorrarRegistroEnDesborde(int hash,FILE*f);
@@ -32,7 +34,7 @@ int eliminarReg(char*fichero, char *dni){
 		return -2;
 	}
 
-	fseek(f,DESPLAZA_HASH(dni),SEEK_SET);
+	fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
 	fread(&c,TAM_CUBO,1,f);
 
 	tope = (c.numRegAsignados < C)? (c.numRegAsignados) : (C);
@@ -47,7 +49,7 @@ int eliminarReg(char*fichero, char *dni){
 
 			c.numRegAsignados -= 1;
 
-			fseek(f,DESPLAZA_HASH(dni),SEEK_SET);
+			fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
 			fwrite(&c,1,TAM_CUBO,f);
 
 			fclose(f);
@@ -72,7 +74,10 @@ int eliminarReg(char*fichero, char *dni){
 		for(j=0; j<tope; j++){
 			if(SON_IGUALES(c.reg[j].dni,dni)){
 				c.reg[j] = buscarYBorrarRegistroEnDesborde(-1,f);
-				fseek(f,INICIO_DESBORDE+(TAM_CUBO*i),SEEK_SET);
+				if(SON_IGUALES(c.reg[j].dni,dni)){
+					memset(&c.reg[j],0,sizeof(tipoAlumno));
+				}
+				fseek(f,DESPLAZA_A_CUBO(CUBOS + i),SEEK_SET);
 				fwrite(&c,1,TAM_CUBO,f);
 				fclose(f);
 				return CUBOS+i;
@@ -107,7 +112,7 @@ tipoAlumno buscarYBorrarRegistroEnDesborde(int hash,FILE*f){
 					break;
 				}
 			}else{
-				if(!SON_IGUALES(c.reg[i].dni,"\0")){
+				if(!ESTA_VACIA(c.reg[i].dni)){
 					encontrado = 1;
 					break;
 				}
@@ -120,7 +125,7 @@ tipoAlumno buscarYBorrarRegistroEnDesborde(int hash,FILE*f){
 	a = c.reg[i];
 
 	for(j=c.numRegAsignados-1; j>=0; j--){
-		if(!SON_IGUALES(c.reg[j].dni,"\0")){
+		if(!ESTA_VACIA(c.reg[j].dni)){
 			c.reg[i] = c.reg[j];
 			break;
 		}
