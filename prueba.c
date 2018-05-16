@@ -7,6 +7,7 @@
   do{                                                                                   \
     if(debug == 1){                                                                     \
       printf("\n\n\t\t[%s:%d:%s] # %s\n\n",__FILE__,__LINE__,__FUNCTION__,string);      \
+      fflush(stdout);                                                                   \
     }                                                                                   \
   }while(0)
 
@@ -14,15 +15,16 @@
 #define FICHERO_HASH "alumnos.hash"
 
 #define DNI1 "7389298"
-#define DNI2 "7219752"
-#define DNI3 "123456789"
+#define DNI2 "7301387"
+#define DNI3 "7219752"
+#define DNI4 "123456789"
 
 void probarBusquedas(char*rutaHash);
 void probarEliminaciones(char*rutaHash);
 
 
 int debug = 0;
-int imprimirFichero = 0;
+int imprimirFichero = 1;
 
 int main(){
   int i;
@@ -69,7 +71,7 @@ void probarBusquedas(char*rutaHash){
   LOG("Fichero HASH abierto");
 
   LOG("Comenzando busqueda 1");
-  printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL",DNI1);
+  printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL --  HAY REGISTROS DESBORDADOS",DNI1);
   i = buscaReg(f,&reg,DNI1);
   if(i > 0){
   	printf("\n\tRegistro encontrado en el CUBO %d",i);
@@ -79,17 +81,17 @@ void probarBusquedas(char*rutaHash){
   }
 
   LOG("Comenzando busqueda 2");
-  printf("\n\n\tBuscando %s -- EN DESBORDE",DNI2);
+  printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL -- NO HAY REGISTROS DESBORDADOS",DNI2);
   i = buscaReg(f,&reg,DNI2);
   if(i > 0){
-  	printf("\n\tRegistro encontrado en el CUBO %d",i);
-  	printf("\n\t\t %s %s %s %s %s\n",reg.dni,reg.nombre,reg.ape1,reg.ape2,reg.provincia);
+    printf("\n\tRegistro encontrado en el CUBO %d",i);
+    printf("\n\t\t %s %s %s %s %s\n",reg.dni,reg.nombre,reg.ape1,reg.ape2,reg.provincia);
   }else{
-  	printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI2,i);
+    printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI2,i);
   }
 
   LOG("Comenzando busqueda 3");
-  printf("\n\n\tBuscando %s -- NO ESTA",DNI3);
+  printf("\n\n\tBuscando %s -- EN DESBORDE",DNI3);
   i = buscaReg(f,&reg,DNI3);
   if(i > 0){
   	printf("\n\tRegistro encontrado en el CUBO %d",i);
@@ -98,11 +100,57 @@ void probarBusquedas(char*rutaHash){
   	printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI3,i);
   }
 
+  LOG("Comenzando busqueda 4");
+  printf("\n\n\tBuscando %s -- NO ESTA",DNI4);
+  i = buscaReg(f,&reg,DNI4);
+  if(i > 0){
+  	printf("\n\tRegistro encontrado en el CUBO %d",i);
+  	printf("\n\t\t %s %s %s %s %s\n",reg.dni,reg.nombre,reg.ape1,reg.ape2,reg.provincia);
+  }else{
+  	printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI4,i);
+  }
+
   LOG("Cerrando fichero HASH");
   fclose(f);
   LOG("Fichero HASH cerrado");
 }
 
 void probarEliminaciones(char*rutaHash){
+  int i;
 
+  LOG("Comenzando eliminacion 1");
+  printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL -- HAY REGISTROS DESBORDADOS",DNI1);
+  i = eliminarReg(FICHERO_HASH,DNI1);
+  if(i > 0){
+    printf("\n\tRegistro eliminado con exito # encontrado en el CUBO %d",i);
+  }else{
+    printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI1,i);
+  }
+
+  LOG("Comenzando eliminacion 2");
+  printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL -- NO HAY REGISTROS DESBORDADOS",DNI2);
+  i = eliminarReg(FICHERO_HASH,DNI2);
+  if(i > 0){
+    printf("\n\tRegistro eliminado con exito # encontrado en el CUBO %d",i);
+  }else{
+    printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI2,i);
+  }
+
+  LOG("Comenzando eliminacion 3");
+  printf("\n\n\tBuscando %s -- EN DESBORDE",DNI3);
+  i =eliminarReg(FICHERO_HASH,DNI3);
+  if(i > 0){
+    printf("\n\tRegistro eliminado con exito # encontrado en el CUBO %d",i);
+  }else{
+    printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI3,i);
+  }
+
+  LOG("Comenzando eliminacion 4");
+  printf("\n\n\tBuscando %s -- NO ESTA",DNI4);
+  i = eliminarReg(FICHERO_HASH,DNI4);
+  if(i > 0){
+    printf("\n\tRegistro eliminado con exito # encontrado en el CUBO %d",i);
+  }else{
+    printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d",DNI4,i);
+  }
 }

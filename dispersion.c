@@ -4,11 +4,15 @@
 #include <string.h>
 
 #define MARCA fprintf(stderr,"\n[%s:%d]",__FUNCTION__,__LINE__);
+
 #define HASH(elemento) ((elemento) % CUBOS)
+
 #define TAM_CUBO (sizeof(tipoCubo))
 #define TAM_ALUMNO (sizeof(tipoAlumno))
+
 #define INICIO_DESBORDE (CUBOS*sizeof(tipoCubo))
 #define DESPLAZA_HASH(elemento) (HASH(elemento)*TAM_CUBO)
+#define ESTA_DESBORDADO(cubo) (cubo.numRegAsignados > C)
 
 // Crea un fichero hash inicialmente vacio seg�n los criterios especificados en la pr�ctica
 // Primera tarea a realizar para  crear un fichero organizado mediante DISPERSI�N
@@ -117,7 +121,7 @@ int creaHash(char *fichEntrada,char *fichHash){
 }
 
 int buscaReg(FILE *fHash, tipoAlumno *reg,char *dni){
-	int i;	
+	int i,j, tope;	
 	tipoCubo c;
 
 
@@ -131,15 +135,17 @@ int buscaReg(FILE *fHash, tipoAlumno *reg,char *dni){
 		}
 	}
 
-	if(c.numRegAsignados < C || c.numRegAsignados == 0)
+	if(!ESTA_DESBORDADO(c))
 		return -1;
 
 	fseek(fHash,INICIO_DESBORDE,SEEK_SET);
-	while(0 < fread(&c,TAM_CUBO,1,fHash)){
-		for(i=0; i<c.numRegAsignados && i<C; i++){
+	for(j=0; j<CUBOSDESBORDE; j++){
+		fread(&c,TAM_CUBO,1,fHash);
+		tope = (c.numRegAsignados < C)? (c.numRegAsignados) : (C);
+		for(i=0; i<tope; i++){
 			if(!strcmp(c.reg[i].dni,dni)){
 				*reg = c.reg[i];
-				return i+CUBOS;
+				return j+CUBOS;
 			}
 		}
 	}
