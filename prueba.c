@@ -155,7 +155,7 @@ void probarEliminaciones(char*rutaHash){
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI3,i);
   }
-/*
+
   LOG("Comenzando eliminacion 4");
   printf("\n\n\tBuscando %s -- NO ESTA",DNI4);
   i = eliminarReg(FICHERO_HASH,DNI4);
@@ -173,6 +173,6 @@ void probarEliminaciones(char*rutaHash){
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI5,i);
   }
-*/
+
   
 }

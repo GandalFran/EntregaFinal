@@ -23,7 +23,7 @@
 
 #define ESTA_DESBORDADO(cubo) (cubo.numRegAsignados > C)
 #define SON_IGUALES(dni1,dni2) (!strcmp(dni1,dni2))
-#define ESTA_VACIA(string) (!strcmp(string,""))
+#define ESTA_VACIA(string) (string[0] == '\0')
 
 
 tipoAlumno extraerRegDesborde(char*dni,int hash,int tipoBusqueda,FILE*f);
@@ -144,39 +144,23 @@ tipoAlumno extraeUltimoRegDesborde(FILE*f){
 
 	tipoCubo c;
 	tipoAlumno a, regSustituir;
-	int i, j, encontrado,bloque;
+	int i, j,bloque;
 
 	fseek(f,FIN_DESBORDE,SEEK_SET);
 
 	//Buscamos desde el final 
-	bloque = CUBOS+CUBOSDESBORDE-1;
-	encontrado = 0;
-	while(!encontrado && bloque>=CUBOS){
+	bloque = CUBOS+CUBOSDESBORDE;
+	do{
 		bloque--;
-
 		fread(&c,TAM_CUBO,1,f);
 		fseek(f,-2*TAM_CUBO,SEEK_CUR);
+	}while(c.numRegAsignados <= 0 && bloque>CUBOS);
 
-		i = C;
-		while(i>0 && !encontrado){	
-			i--;
-			if(!ESTA_VACIA(c.reg[i].dni))
-				encontrado = 1;
-		}
-	}
-
-int k;
-MARCA(" ");
-printCubo(c,bloque);
-for(k=0; k<C; k++){
-	MARCA("c.reg[%d].dni :: %s",k,c.reg[k].dni);
-}
-MARCA("DNI que devuelve %s",c.reg[i].dni);
 
 	//Si lo encontramos lo guardamos y recolocamos el cubo
-	if(encontrado){
-		a = c.reg[i];
-		recolocarCubo(c,i);
+	if(i>=CUBOS){
+		a = c.reg[c.numRegAsignados-1];
+		recolocarCubo(c,c.numRegAsignados-1);
 
 		fseek(f,TAM_CUBO,SEEK_CUR); 
 		fwrite(&c,1,TAM_CUBO,f);
@@ -251,8 +235,8 @@ void recolocarCubo(tipoCubo c, int aSustituir){
 		}
 	}
 
-	memset(c.reg[j].dni,'\0',sizeof(tipoAlumno));
-	memset(&(c.reg[j]),0,sizeof(tipoAlumno));
+	memset(&(c.reg[j]),0,TAM_ALUMNO);
+	c.reg[j].dni[0] = '\0';
 }
 
 void decrementarNumRegsDesborde(FILE*f){
