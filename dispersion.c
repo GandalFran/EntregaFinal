@@ -4,15 +4,11 @@
 #include <string.h>
 
 #define MARCA fprintf(stderr,"\n[%s:%d]",__FUNCTION__,__LINE__);
-
 #define HASH(elemento) ((elemento) % CUBOS)
-
 #define TAM_CUBO (sizeof(tipoCubo))
 #define TAM_ALUMNO (sizeof(tipoAlumno))
-
 #define INICIO_DESBORDE (CUBOS*sizeof(tipoCubo))
 #define DESPLAZA_HASH(elemento) (HASH(elemento)*TAM_CUBO)
-#define ESTA_DESBORDADO(cubo) (cubo.numRegAsignados > C)
 
 // Crea un fichero hash inicialmente vacio seg�n los criterios especificados en la pr�ctica
 // Primera tarea a realizar para  crear un fichero organizado mediante DISPERSI�N
@@ -79,40 +75,12 @@ int creaHash(char *fichEntrada,char *fichHash){
 		return -1;
 	}
 	
-
-
 	nDesbord = 0;
 	while(0 < fread(&a, TAM_ALUMNO, 1, fEntrada)){
-		fseek(fSalida,DESPLAZA_HASH(atoi(a.dni)),SEEK_SET);
-		fread(&c,TAM_CUBO,1,fSalida);
-		
-		if(c.numRegAsignados < C){
-			c.reg[c.numRegAsignados] = a;	
-		}
-		c.numRegAsignados += 1;
-		fseek(fSalida,-TAM_CUBO,SEEK_CUR);
-		fwrite(&c,1,TAM_CUBO,fSalida);
-
-		if(c.numRegAsignados > C){
-
-			fseek(fSalida,INICIO_DESBORDE,SEEK_SET);
-			i=0;
-			while(i<CUBOSDESBORDE && c.numRegAsignados>=C){
-				i++;
-				fread(&c,TAM_CUBO,1,fSalida);
-			}
-
-			c.reg[c.numRegAsignados] = a;	
-			c.numRegAsignados += 1;
-
-			fseek(fSalida,-TAM_CUBO,SEEK_CUR);
-			fwrite(&c,TAM_CUBO,1,fSalida);
-
-			nDesbord += 1;
-		}
-
-	};
-
+		if(insertarReg(fSalida,&a) >= CUBOS){
+			nDesbord++;
+		}	
+	}
 
 	fclose(fEntrada);
 	fclose(fSalida);
@@ -121,7 +89,7 @@ int creaHash(char *fichEntrada,char *fichHash){
 }
 
 int buscaReg(FILE *fHash, tipoAlumno *reg,char *dni){
-	int i,j, tope;	
+	int i,cuboActual;	
 	tipoCubo c;
 
 
@@ -135,20 +103,37 @@ int buscaReg(FILE *fHash, tipoAlumno *reg,char *dni){
 		}
 	}
 
-	if(!ESTA_DESBORDADO(c))
+	if(c.numRegAsignados < C || c.numRegAsignados == 0)
 		return -1;
 
+	cuboActual = 0;
 	fseek(fHash,INICIO_DESBORDE,SEEK_SET);
-	for(j=0; j<CUBOSDESBORDE; j++){
-		fread(&c,TAM_CUBO,1,fHash);
-		tope = (c.numRegAsignados < C)? (c.numRegAsignados) : (C);
-		for(i=0; i<tope; i++){
+	while(0 < fread(&c,TAM_CUBO,1,fHash)){
+		for(i=0; i<c.numRegAsignados && i<C; i++){
 			if(!strcmp(c.reg[i].dni,dni)){
 				*reg = c.reg[i];
-				return j+CUBOS;
+				return cuboActual+CUBOS;
 			}
 		}
+		cuboActual++;
 	}
+}
+
+void incrementarNumRegsDesborde(int hasta,FILE*f){
+	int i;
+	tipoCubo c;
+
+	fseek(f,INICIO_DESBORDE,SEEK_SET);
+
+	i=0;
+	while(i<=hasta){
+		fread(&c,TAM_CUBO,1,f);
+		c.numRegAsignados += 1;
+		fseek(f,-TAM_CUBO,SEEK_CUR);
+		fwrite(&c,1,TAM_CUBO,f);
+		i++;
+	}
+
 }
 
 int insertarReg(FILE*f,tipoAlumno*reg){
@@ -172,19 +157,20 @@ int insertarReg(FILE*f,tipoAlumno*reg){
 		fwrite(&c,1,TAM_CUBO,f);
 
 		fseek(f,INICIO_DESBORDE,SEEK_SET);
-		i=0;
-		while(i<CUBOSDESBORDE && c.numRegAsignados>=C){
+		i=-1;
+		while(i<CUBOSDESBORDE-1 && c.numRegAsignados>=C){
 			i++;
 			fread(&c,TAM_CUBO,1,f);
 		}
 		if(i == CUBOSDESBORDE)
 			return -1;
 
-		c.reg[c.numRegAsignados] = *reg;	
-		c.numRegAsignados += 1;
+		c.reg[c.numRegAsignados] = *reg;
 
 		fseek(f,-TAM_CUBO,SEEK_CUR);
 		fwrite(&c,TAM_CUBO,1,f);
+
+		incrementarNumRegsDesborde(i,f);
 
 		return i + CUBOS;
 	}

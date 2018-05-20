@@ -18,7 +18,7 @@
 #define DNI2 "7301387"
 #define DNI3 "7219752"
 #define DNI4 "123456789"
-#define DNI5 "11543192"
+#define DNI5 "11000258"
 
 void probarBusquedas(char*rutaHash);
 void probarEliminaciones(char*rutaHash);
@@ -36,10 +36,10 @@ int main(){
   i=creaHash(FICHERO_DAT,FICHERO_HASH);
   LOG("Generacion fichero HASH done");
   printf("\n\tRegistros desbordados: %d\n",i);
-  /*if(imprimirFichero == 1){
+  if(imprimirFichero == 1){
     printf("\n\nImpresion de fichero Hash:\n");
     leeHash(FICHERO_HASH);
-  }*/
+  }
 
   printf("\n\n************************ BUSQUEDAS DE PRUEBA *************************\n");
   probarBusquedas(FICHERO_HASH);
@@ -132,7 +132,7 @@ void probarEliminaciones(char*rutaHash){
   LOG("Comenzando eliminacion 1");
   printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL -- HAY REGISTROS DESBORDADOS",DNI1);
   i = eliminarReg(FICHERO_HASH,DNI1);
-  if(i > 0){
+  if(i != -1){
     printf("\n\tRegistro eliminado con exito # estaba en el CUBO %d\n",i);
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI1,i);
@@ -141,7 +141,7 @@ void probarEliminaciones(char*rutaHash){
   LOG("Comenzando eliminacion 2");
   printf("\n\n\tBuscando %s -- EN BLOQUE ORIGINAL -- NO HAY REGISTROS DESBORDADOS",DNI2);
   i = eliminarReg(FICHERO_HASH,DNI2);
-  if(i > 0){
+  if(i != -1){
     printf("\n\tRegistro eliminado con exito # estaba en el CUBO %d\n",i);
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI2,i);
@@ -150,28 +150,29 @@ void probarEliminaciones(char*rutaHash){
   LOG("Comenzando eliminacion 3");
   printf("\n\n\tBuscando %s -- EN DESBORDE",DNI3);
   i =eliminarReg(FICHERO_HASH,DNI3);
-  if(i > 0){
+  if(i != -1){
     printf("\n\tRegistro eliminado con exito # estaba en el CUBO %d\n",i);
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI3,i);
   }
-
+/*
   LOG("Comenzando eliminacion 4");
   printf("\n\n\tBuscando %s -- NO ESTA",DNI4);
   i = eliminarReg(FICHERO_HASH,DNI4);
-  if(i > 0){
+  if(i != -1){
     printf("\n\tRegistro eliminado con exito # estaba en el CUBO %d\n",i);
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI4,i);
   }
 
-
   LOG("Comenzando eliminacion 5");
   printf("\n\n\tBuscando %s -- EN LA ULTIMA POSICION DEL DESBORDE TRAS LAS OTRAS 3 ELIMINACIONES",DNI5);
   i = eliminarReg(FICHERO_HASH,DNI5);
-  if(i > 0){
+  if(i != -1){
     printf("\n\tRegistro eliminado con exito # estaba en el CUBO %d\n",i);
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI5,i);
   }
+*/
+  
 }
