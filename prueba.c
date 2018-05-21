@@ -24,7 +24,7 @@ void probarBusquedas(char*rutaHash);
 void probarEliminaciones(char*rutaHash);
 
 
-int debug = 0;
+int debug =1;
 int imprimirFichero = 1;
 
 int main(){

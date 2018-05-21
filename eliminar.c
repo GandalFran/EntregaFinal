@@ -26,9 +26,9 @@
 #define ESTA_VACIA(string) (string[0] == '\0')
 
 
-tipoAlumno extraerRegDesborde(char*dni,int hash,int tipoBusqueda,FILE*f);
-tipoAlumno extraeUltimoRegDesborde(FILE*f);
-void recolocarCubo(tipoCubo c, int aSustituir);
+int extraerRegDesborde(char*dni,int hash,int tipoBusqueda,FILE*f,tipoAlumno*a);
+int extraeUltimoRegDesborde(FILE*f,tipoAlumno*a);
+void recolocarCubo(tipoCubo*c, int aSustituir);
 void decrementarNumRegsDesborde(FILE*f);
 
 
@@ -95,39 +95,42 @@ int eliminarReg(char*fichero, char *dni){
 	fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
 	fread(&c,TAM_CUBO,1,f);
 
-	i = -1;
 	encontrado = 0;
-	while( i<c.numRegAsignados-1 && i<C-1 && !encontrado){
-		i++;
-		if(SON_IGUALES(c.reg[i].dni,dni))
+	for(i=0; i<c.numRegAsignados-1 && i<C-1; i++){
+		if(SON_IGUALES(c.reg[i].dni,dni)){
 			encontrado = 1;
+			break;
+		}
 	}
+
 
 	if(encontrado){//Registro encontrado en cubo de su hash
 
 		if(ESTA_DESBORDADO(c)){
-			c.reg[i] = extraerRegDesborde(NULL,HASH(dni),CON_HASH,f);
+			extraerRegDesborde(NULL,HASH(dni),CON_HASH,f,&a);
+			c.reg[i] = a;
 			decrementarNumRegsDesborde(f);
 		}else
-			recolocarCubo(c,i);
-		
+			recolocarCubo(&c,i);
+
 		c.numRegAsignados -= 1;
 		fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
-		fwrite(&c,1,TAM_CUBO,f);
+		fwrite(&c,TAM_CUBO,1,f);
+	
 
 		fclose(f);
 		return 2;
 
 	}else if(ESTA_DESBORDADO(c)){//Registro no econtrado pero esta en el desborde
-	
-		a = extraerRegDesborde(dni,0,CON_DNI,f);
+
+		extraerRegDesborde(dni,0,CON_DNI,f,&a);
 
 		fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
 		fread(&c,TAM_CUBO,1,f);
 		c.numRegAsignados -= 1;
 		fwrite(&c,1,TAM_CUBO,f);
 
-		decrementarNumRegsDesborde(f);
+		//decrementarNumRegsDesborde(f);
 
 		fclose(f);
 		return 1;
@@ -137,106 +140,89 @@ int eliminarReg(char*fichero, char *dni){
 		return -1;
 	}
 
+	
 }
 
 
-tipoAlumno extraeUltimoRegDesborde(FILE*f){
-
+int extraerRegDesborde(char*dni,int hash,int tipoBusqueda,FILE*f,tipoAlumno*a){
+	int i,j,encontrado;	
 	tipoCubo c;
-	tipoAlumno a, regSustituir;
-	int i, j,bloque;
-
-	fseek(f,FIN_DESBORDE,SEEK_SET);
-
-	//Buscamos desde el final 
-	bloque = CUBOS+CUBOSDESBORDE;
-	do{
-		bloque--;
-		fread(&c,TAM_CUBO,1,f);
-		fseek(f,-2*TAM_CUBO,SEEK_CUR);
-	}while(c.numRegAsignados <= 0 && bloque>CUBOS);
-
-
-	//Si lo encontramos lo guardamos y recolocamos el cubo
-	if(i>=CUBOS){
-		a = c.reg[c.numRegAsignados-1];
-		recolocarCubo(c,c.numRegAsignados-1);
-
-		fseek(f,TAM_CUBO,SEEK_CUR); 
-		fwrite(&c,1,TAM_CUBO,f);
-	}else
-		memset(&a,0,TAM_ALUMNO);
-
-	return a;
-}
-
-
-tipoAlumno extraerRegDesborde(char*dni,int hash,int tipoBusqueda,FILE*f){
-	tipoCubo c;
-	tipoAlumno a, regSustituir;
-	int i, j, encontrado,cuboActual;
+	tipoAlumno regSustituir;
 
 	fseek(f,INICIO_DESBORDE,SEEK_SET);
 
-	//Buscamos desde el final o bien el registro con hash el que tenemos o bien el ultimo
-	cuboActual = CUBOS-1;
 	encontrado = 0;
-	while(!encontrado && cuboActual<CUBOS+CUBOSDESBORDE-1){
-		cuboActual++;
-
+	for(i=0; i<CUBOSDESBORDE && !encontrado; i++){
 		fread(&c,TAM_CUBO,1,f);
-
-		i = -1;
-		while(i<c.numRegAsignados-1 && !encontrado){
-			i++;
+		for(j=0; j<C && j<c.numRegAsignados; j++){
 			if(tipoBusqueda == CON_HASH){
-				if(HASH(c.reg[i].dni) == hash)
+				if(hash == HASH(c.reg[j].dni)){
 					encontrado = 1;
+					break;
+				}
 			}else{
-				if(SON_IGUALES(c.reg[i].dni,dni))
+				if(SON_IGUALES(c.reg[j].dni,dni)){
 					encontrado = 1;
+					break;
+				}
 			}
 		}
-	}
-	MARCA("FICHERO ANTES DE BUSCAR EL ULTIMO REGISTRO: ");
-	leeHash2(f);
-	MARCA("FIN DE FICHERO");
+	}	
 
-	a = c.reg[i];
-	//Buscamos el ultimo registro del desborde para sustituirlo
-	regSustituir = extraeUltimoRegDesborde(f);
+	*a = c.reg[j];
 
+	extraeUltimoRegDesborde(f,&regSustituir);
 
-	MARCA("DNI encontrado: %s",a.dni);
-	MARCA("DNI a sustituir: %s",regSustituir.dni);
-
-	if(ESTA_VACIA(regSustituir.dni) || SON_IGUALES(a.dni,regSustituir.dni)){
-		//Si no se encuentra o es el registro que vamos a devolver
-		recolocarCubo(c,i);
+	if(SON_IGUALES(c.reg[j].dni,regSustituir.dni) || ESTA_VACIA(regSustituir.dni)){
+		recolocarCubo(&c,j);
 	}else{
-		//En caso contrario lo metemos ahi para sustituir
-		c.reg[i] = regSustituir;
+		c.reg[j] = regSustituir;
 	}
 
-	fseek(f, DESPLAZA_A_CUBO(cuboActual),SEEK_SET); 
-	fwrite(&c,1,TAM_CUBO,f);
+	fseek(f,DESPLAZA_A_CUBO(CUBOS+i-1),SEEK_SET);
+	fwrite(&c,TAM_CUBO,1,f);
 
-
-	return a;
+	return 0;
 }
 
-void recolocarCubo(tipoCubo c, int aSustituir){
+int extraeUltimoRegDesborde(FILE*f,tipoAlumno*a){
+	int i;
+	tipoCubo c, anterior;
+
+	fseek(f,INICIO_DESBORDE,SEEK_SET);
+	
+	for(i=0; i<CUBOSDESBORDE; i++){
+		anterior = c;
+		fread(&c,TAM_CUBO,1,f);
+		if(c.numRegAsignados == 0)
+			break;
+	}
+
+	if(i > 0)
+		c = anterior;
+
+
+	*a = c.reg[c.numRegAsignados-1];
+
+	recolocarCubo(&c,c.numRegAsignados-1);
+
+	fseek(f,-2*TAM_CUBO,SEEK_CUR);
+	fwrite(&c,TAM_CUBO,1,f);
+
+	return 0;
+}
+
+void recolocarCubo(tipoCubo*c, int aSustituir){
 	int j;
 
-	for(j=c.numRegAsignados-1; j>=0; j--){
-		if(!ESTA_VACIA(c.reg[j].dni)){
-			c.reg[aSustituir] = c.reg[j];
+	for(j=c->numRegAsignados-1; j>=0; j--){
+		if(!ESTA_VACIA(c->reg[j].dni)){
+			c->reg[aSustituir] = c->reg[j];
 			break;
 		}
 	}
 
-	memset(&(c.reg[j]),0,TAM_ALUMNO);
-	c.reg[j].dni[0] = '\0';
+	memset(&(c->reg[j]),0,TAM_ALUMNO);
 }
 
 void decrementarNumRegsDesborde(FILE*f){
