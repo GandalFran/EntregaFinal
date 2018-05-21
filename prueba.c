@@ -24,7 +24,7 @@ void probarBusquedas(char*rutaHash);
 void probarEliminaciones(char*rutaHash);
 
 
-int debug =1;
+int debug =0;
 int imprimirFichero = 1;
 
 int main(){
@@ -147,6 +147,7 @@ void probarEliminaciones(char*rutaHash){
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI2,i);
   }
 
+
   LOG("Comenzando eliminacion 3");
   printf("\n\n\tBuscando %s -- EN DESBORDE",DNI3);
   i =eliminarReg(FICHERO_HASH,DNI3);
@@ -156,6 +157,7 @@ void probarEliminaciones(char*rutaHash){
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI3,i);
   }
 
+
   LOG("Comenzando eliminacion 4");
   printf("\n\n\tBuscando %s -- NO ESTA",DNI4);
   i = eliminarReg(FICHERO_HASH,DNI4);
@@ -164,6 +166,7 @@ void probarEliminaciones(char*rutaHash){
   }else{
     printf("\n\tRegistro con DNI: %s no encontrado; codigo de retorno %d\n",DNI4,i);
   }
+
 
   LOG("Comenzando eliminacion 5");
   printf("\n\n\tBuscando %s -- EN LA ULTIMA POSICION DEL DESBORDE TRAS LAS OTRAS 3 ELIMINACIONES",DNI5);
