@@ -108,7 +108,7 @@ int eliminarReg(char*fichero, char *dni){
 	}else if(ESTA_DESBORDADO(c)){//Registro no econtrado pero puede estar en el desborde
 
 		if(0  != extraerRegDesborde(dni,0,CON_DNI,f,&a))
-			return -2;
+			return -1;
 		decrementarNumRegsDesborde(f);
 
 		fseek(f,DESPLAZA_A_CUBO(HASH(dni)),SEEK_SET);
